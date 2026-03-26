@@ -1,174 +1,250 @@
-### Intrucciones docker para CC0C2
+### Instrucciones Docker para CC-0C2
 
-Guía rápida para ejecutar la **Semana 1** en un entorno reproducible con Docker.
+Guía práctica para construir y ejecutar el entorno reproducible del curso con Docker usando la imagen **`entorno_nlp`**.
+
+> En este proyecto la carpeta del curso se llama **`CC-0C2`**, pero la **imagen Docker** se construirá con el nombre **`entorno_nlp`**.
 
 #### 1. Estructura recomendada
 
 ```text
-NLP/
+CC-0C2/
 ├── Dockerfile
 ├── requirements-base.txt
-├── requirements-optional.txt
+├── requirements-opcional.txt
 ├── Docker.md
-├── verify_env.ipynb
+├── verificacion_entorno.ipynb
 ├── .dockerignore
 └── Semana1/
     ├── Cuaderno1-CC0C2.ipynb
     └── Enlaces.md
 ```
 
-> La carpeta puede llamarse `NLP`, pero el **nombre de la imagen Docker** debe ir en minúsculas.  
-> Usa `nlp` como etiqueta de la imagen.
+#### 2. Qué hace este Dockerfile
 
-#### 2. Construir la imagen Docker
+El `Dockerfile` de este proyecto:
 
-#### Windows (Docker Desktop / PowerShell)
+- usa `python:3.11-slim`
+- copia `requirements-base.txt` y `requirements-opcional.txt`
+- instala primero la base y luego, si corresponde, los paquetes opcionales
+- descarga recursos de `nltk`
+- descarga el modelo `es_core_news_sm` de `spaCy`
+- expone `JupyterLab` en el puerto `8891`
 
-```powershell
-cd C:\ruta\a\NLP
-docker build -t nlp .
-```
+#### 3. Construir la imagen con bash
 
-#### Linux/macOS/Git Bash
-
-```bash
-cd /ruta/a/NLP
-docker build -t nlp .
-```
-
-#### Solo base (sin paquetes opcionales)
-
-```bash
-docker build --build-arg INSTALL_OPTIONAL=false -t nlp .
-```
-
-#### 3. Ejecutar el contenedor y acceder a JupyterLab
-
-##### 3.1 Montar toda la carpeta del curso (`NLP`)
+##### 3.1 Entrar a la carpeta del proyecto
 
 **Linux/macOS/Git Bash**
+
+```bash
+cd /ruta/a/CC-0C2
+ls
+```
+
+Debes ver al menos:
+
+```text
+Dockerfile
+requirements-base.txt
+requirements-opcional.txt
+```
+
+##### 3.2 Construir primero solo la base
+
+Conviene validar primero el entorno principal, sin paquetes opcionales:
+
+```bash
+docker build --no-cache --build-arg INSTALL_opcional=false -t entorno_nlp .
+```
+
+##### 3.3 Construir la imagen completa
+
+Si el paso anterior termina bien, construye base + opcional:
+
+```bash
+docker build --no-cache --build-arg INSTALL_opcional=true -t entorno_nlp .
+```
+
+##### 3.4 Verificar que la imagen exista
+
+```bash
+docker images | grep entorno_nlp
+```
+
+#### 4. Ejecutar el contenedor desde bash
+
+##### 4.1 Linux/macOS/Git Bash
+
 ```bash
 docker run -it --rm \
-  -p 8888:8888 \
+  --name entorno_nlp_container \
+  -p 8891:8891 \
   -v "$(pwd)":/workspace \
-  nlp
+  entorno_nlp
 ```
 
-**Windows PowerShell**
+##### 4.2 Windows PowerShell
+
 ```powershell
 docker run -it --rm `
-  -p 8888:8888 `
+  --name entorno_nlp_container `
+  -p 8891:8891 `
   -v "${PWD}:/workspace" `
-  nlp
+  entorno_nlp
 ```
 
-**Windows CMD**
+##### 4.3 Windows CMD
+
 ```bat
-docker run -it --rm -p 8888:8888 -v %cd%:/workspace nlp
+docker run -it --rm --name entorno_nlp_container -p 8891:8891 -v %cd%:/workspace entorno_nlp
 ```
 
-##### 3.2 Montar solo para la `Semana 1`
+#### 5. Abrir JupyterLab
 
-**Linux/macOS/Git Bash**
+Al iniciar el contenedor, abre en el navegador:
+
+```text
+http://localhost:8891/lab
+```
+
+Si Jupyter muestra token, cópialo desde los logs del contenedor.
+
+#### 6. Paso a paso con Docker Desktop
+
+##### 6.1 Construir la imagen
+
+Abre Docker Desktop y usa la terminal integrada, o una terminal normal con Docker Desktop iniciado.
+
+Ejecuta primero la build base:
+
 ```bash
-docker run -it --rm \
-  -p 8888:8888 \
-  -v /ruta/a/NLP/Semana1:/workspace \
-  nlp
+docker build --no-cache --build-arg INSTALL_opcional=false -t entorno_nlp .
 ```
 
-**Windows PowerShell**
-```powershell
-docker run -it --rm `
-  -p 8888:8888 `
-  -v "C:\ruta\a\NLP\Semana1:/workspace" `
-  nlp
+Si termina bien, construye la imagen completa:
+
+```bash
+docker build --no-cache --build-arg INSTALL_opcional=true -t entorno_nlp .
 ```
 
-#### 4. Cómo usar los dos archivos de requirements
+##### 6.2 Ejecutar la imagen desde la interfaz
+
+En **Images**, busca `entorno_nlp` y pulsa **Run**.
+
+Completa los campos así:
+
+```text
+Container name: cc-0c2-entorno
+Host port: 8891
+Host path: C:\Users\TU_USUARIO\Documents\CC-0C2
+Container path: /workspace
+Environment variables: dejar vacío
+```
+
+Notas:
+
+- `entorno_nlp` es el nombre de la imagen.
+- `cc-0c2-entorno` es solo un ejemplo de nombre del contenedor.
+- También puedes usar `entorno_nlp_container` como nombre del contenedor.
+
+Después abre:
+
+```text
+http://localhost:8891/lab
+```
+
+#### 7. Cómo usar los dos archivos de requirements fuera de Docker
 
 ##### Opción A. Solo base
-Instala el entorno principal del curso:
 
 ```bash
 pip install -r requirements-base.txt
 ```
 
 ##### Opción B. Base + opcional
-Agrega herramientas para retrieval, fine-tuning eficiente, demos y servicios:
 
 ```bash
 pip install -r requirements-base.txt
-pip install -r requirements-optional.txt
+pip install -r requirements-opcional.txt
 ```
 
 ##### Opción C. En una sola línea
 
 ```bash
-pip install -r requirements-base.txt -r requirements-optional.txt
+pip install -r requirements-base.txt -r requirements-opcional.txt
 ```
 
-#### 5. Qué instala cada archivo
+#### 8. Qué instala cada archivo
 
 - `requirements-base.txt`: núcleo del entorno, ciencia de datos, PyTorch CPU, NLP clásico y moderno, `transformers`, `datasets`, `evaluate`, `spaCy`, `NLTK` y utilidades generales.
-- `requirements-optional.txt`: retrieval, embeddings, PEFT, alignment ligero, multimodalidad, demos y servicios simples.
+- `requirements-opcional.txt`: retrieval, embeddings, PEFT, alignment ligero, multimodalidad, demos y servicios simples.
 
-#### 6. Qué usar para la Semana 1
+#### 9. Recomendación práctica
 
-Para la **Semana 1** puedes trabajar de dos formas:
+No construyas de una sola vez con los opcionales hasta confirmar que la base ya funciona.
 
-- **Con Docker**: construye la imagen y ya tendrás el entorno listo.
-- **Con pip local**: instala al menos `requirements-base.txt`.
+El `Dockerfile` ya separa ambas fases con `INSTALL_opcional`, así que conviene aprovecharlo:
 
-Por ejemplo `Cuaderno1-CC0C2.ipynb` y `Enlaces.md` quedan dentro de `Semana/`.
+1. construye primero con `INSTALL_opcional=false`
+2. si funciona, construye con `INSTALL_opcional=true`
 
-#### 7. Validar el entorno
+Si la build base pasa y la build opcional falla, entonces el siguiente conflicto estará en `requirements-opcional.txt`, no en el entorno principal.
 
-Abre `verify_env.ipynb` en JupyterLab y ejecuta todas las celdas.
+#### 10. Validar el entorno
 
-La validación comprueba, como mínimo:
+Abre `verificacion_entorno.ipynb` en JupyterLab y ejecuta todas las celdas.
 
-- Versión de Python
-- Imports principales
-- Disponibilidad de `torch`
-- Carga de tokenizer de Hugging Face
-- Carga de un dataset pequeño
-- Funcionamiento básico de spaCy y NLTK.
+La validación debería comprobar, como mínimo:
 
-#### 8. Notas importantes
+- versión de Python
+- imports principales
+- disponibilidad de `torch`
+- carga de tokenizer de Hugging Face
+- carga de un dataset pequeño
+- funcionamiento básico de spaCy y NLTK
 
-- El error que viste con `NLP` ocurre porque las **etiquetas de imagen Docker deben ir en minúsculas**.  
-  Por eso aquí usamos `nlp`.
-- La carpeta del proyecto sí puede llamarse `NLP`.
-- No se incluye `torchtext`.
-- Si cambias dependencias, reconstruye la imagen:
+#### 11. Problemas comunes
+
+##### El build sigue fallando
+
+Reconstruye sin caché para evitar reutilizar capas antiguas:
 
 ```bash
-docker build --no-cache -t nlp .
+docker build --no-cache --build-arg INSTALL_opcional=false -t entorno_nlp .
 ```
 
-#### 9. Acceso a JupyterLab
+Si la build base funciona y la build completa falla, revisa entonces `requirements-opcional.txt`.
 
-Al ejecutar el contenedor aparecerá una URL similar a:
+##### El puerto 8891 está ocupado
+
+Usa otro puerto del host, por ejemplo `8892`:
+
+```bash
+docker run -it --rm -p 8892:8891 -v "$(pwd)":/workspace entorno_nlp
+```
+
+En ese caso abre:
 
 ```text
-http://127.0.0.1:8888/lab?token=...
-```
-
-Ábrela en tu navegador.
-
-#### 10. Problemas comunes
-
-##### Puerto 8888 ocupado
-Usa otro puerto en el host:
-
-```bash
-docker run -it --rm -p 8890:8888 -v "$(pwd)":/workspace nlp
+http://localhost:8892/lab
 ```
 
 ##### spaCy no descarga el modelo
+
 Dentro del contenedor:
 
 ```bash
 python -m spacy download es_core_news_sm
+```
+
+##### Quieres eliminar el warning `JSONArgsRecommended`
+
+No es obligatorio, pero se puede mejorar cambiando el `CMD` del `Dockerfile` a formato JSON.
+
+#### 12. Comandos mínimos recomendados
+
+```bash
+docker build --no-cache --build-arg INSTALL_opcional=false -t entorno_nlp .
+docker build --no-cache --build-arg INSTALL_opcional=true -t entorno_nlp .
+docker run -it --rm --name entorno_nlp_container -p 8891:8891 -v "$(pwd)":/workspace entorno_nlp
 ```
