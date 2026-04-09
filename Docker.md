@@ -4,6 +4,39 @@ Guía práctica para construir y ejecutar el entorno reproducible del curso con 
 
 > En este proyecto la carpeta del curso se llama **`CC-0C2`**, pero las imágenes Docker recomendadas se construirán con los nombres **`entorno_nlp_cpu`** y **`entorno_nlp_gpu`**.
 
+#### 0. Recomendación clave para Windows + WSL
+
+Si trabajas en **Windows con WSL (Ubuntu)**, usa este flujo:
+
+- abre **terminal de Ubuntu (WSL)** para todos los comandos del curso
+- evita usar `git` desde Git Bash/MINGW sobre rutas `//wsl.localhost/...`
+- usa Docker Desktop con integración WSL habilitada
+
+Esto evita errores de permisos/propietario en Git y reduce problemas de montaje de volúmenes.
+
+##### 0.1 Verificación rápida inicial (WSL)
+
+En Ubuntu, dentro de la carpeta del curso:
+
+```bash
+cd ~/2026-1/cc-0c2
+docker --version
+docker compose version
+docker context ls
+docker run --rm hello-world
+```
+
+Si `hello-world` funciona, Docker ya está listo en WSL.
+
+##### 0.2 Si aparece "permission denied" con docker en WSL
+
+```bash
+sudo groupadd docker 2>/dev/null || true
+sudo usermod -aG docker $USER
+newgrp docker
+docker run --rm hello-world
+```
+
 #### 1. Estructura recomendada
 
 ```text
@@ -450,3 +483,52 @@ docker run --gpus all -it --rm --name entorno_nlp_container -p 8891:8891 -v "$(p
 docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
 python -c "import torch; print(torch.__version__); print('cuda:', torch.cuda.is_available())"
 ```
+
+#### 16. Inicio rápido recomendado (Windows + WSL)
+
+Si quieres empezar sin complicarte, sigue solo esto en **Ubuntu WSL**:
+
+1. entra al proyecto:
+
+```bash
+cd ~/2026-1/cc-0c2
+```
+
+2. comprueba Docker:
+
+```bash
+docker run --rm hello-world
+```
+
+3. construye imagen CPU (recomendado para iniciar):
+
+```bash
+docker build --no-cache \
+  --build-arg INSTALL_opcional=true \
+  --build-arg TORCH_FLAVOR=cpu \
+  -t entorno_nlp_cpu .
+```
+
+4. ejecuta contenedor:
+
+```bash
+docker run -it --rm \
+  --name entorno_nlp_container \
+  -p 8891:8891 \
+  -v "$(pwd)":/workspace \
+  entorno_nlp_cpu
+```
+
+5. abre JupyterLab:
+
+```text
+http://localhost:8891/lab
+```
+
+6. valida entorno:
+
+```bash
+python -c "import torch; print(torch.__version__); print('cuda:', torch.cuda.is_available())"
+```
+
+Cuando todo funcione en CPU, recién pasas a la variante GPU.
