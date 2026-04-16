@@ -143,7 +143,7 @@ Debe realizar una **mini ablación** adicional cambiando uno de estos elementos:
 En su exposición debe **hilvanar por lo menos 8** de estos conceptos, aplicados a su propio experimento:
 
 - gradiente,
-- learning rate,
+- tasa de aprendizaje,
 - optimizador,
 - SGD,
 - momentum,
@@ -195,8 +195,8 @@ Debe añadir una comparación secundaria cambiando uno de estos elementos:
 En su exposición debe **hilvanar por lo menos 8** de estos conceptos:
 
 - generalización,
-- overfitting,
-- underfitting,
+- sobreajuste,
+- subajuste,
 - regularización,
 - L2,
 - weight decay,
@@ -300,7 +300,7 @@ En su exposición debe **hilvanar por lo menos 8** de estos conceptos:
 - LSTM,
 - memoria,
 - dependencia de largo alcance,
-- vanishing gradient,
+- desaparición del gradiente,
 - compuertas,
 - cuello de botella,
 - representación temporal,
@@ -429,7 +429,7 @@ En su exposición debe **hilvanar por lo menos 8** de estos conceptos:
 #### Trabajo mínimo
 El estudiante debe tomar un modelo base y compararlo con una variante que incorpore al menos dos de estos elementos:
 
-- residual connection,
+- conexión residual,
 - BatchNorm,
 - LayerNorm,
 - activación más estable,
